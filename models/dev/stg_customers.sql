@@ -8,14 +8,14 @@ with customers as (
 orders as (
     select
         id as order_id,
-        customer as customer_name,
-        ordered_at as order_date
+        customer as customer_id,
+        to_timestamp(ordered_at,'YYYY-MM-DD HH24:MI:SS')as order_date
     from {{ source('app', 'raw_orders')}}
 ),
 
 customer_orders as (
     select
-        customer_name,
+        customer_id,
         min(order_date) as first_order_date,
         max(order_date) as latest_order_date,
         count(order_id) as number_of_orders
@@ -31,7 +31,7 @@ final as (
         customer_orders.latest_order_date,
         coalesce(customer_orders.number_of_orders, 0) as number_of_orders
     from customers
-    left join customer_orders using (customer_name)
+    left join customer_orders using (customer_id)
 )
 
 select * from final
